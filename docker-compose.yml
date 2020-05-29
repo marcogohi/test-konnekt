@@ -200,17 +200,6 @@ services:
     volumes: 
       - ./conf/app-functions/configuration.toml:/res/configuration.toml
 
-  dataclay-client-service:
-    image: marcogohi/dataclay-client-service:latest   
-    container_name: dataclay-client-service
-    hostname: dataclay-client-service
-    ports:
-      - 8000:8000
-    networks:
-      edgex-network:
-        aliases:
-          - dataclay-client-service
-    
 
 #################################################################
 # MQTT Broker
