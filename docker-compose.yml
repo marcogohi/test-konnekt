@@ -110,7 +110,6 @@ services:
       - consul-config:/consul/config
       - consul-data:/consul/data
     depends_on:
-      - logging
       - redis
     logging:
       <<: *common-logs
@@ -131,7 +130,6 @@ services:
       - consul-config:/consul/config
       - consul-data:/consul/data
     depends_on:
-      - logging
       - redis
     logging:
       <<: *common-logs
