@@ -26,13 +26,13 @@ EnableRemote = false
 File = './logs/simple-filter-xml-mqtt.log'
 
 # Database is require when Store and Forward is enabled
-[Database]   
-Type = "mongodb"
-Host = "edgex-mongo"
-Port = 27017
+[Database]
+Type = "redisdb"
+Host = "edgex-redis"
+Port = 6379
 Timeout = "30s"
-Username = "appservice"
-Password = "password"
+Username = ""
+Password = ""
 
 [Clients]
   [Clients.CoreData]
@@ -63,7 +63,7 @@ PublishTopic="somewhere"
 
 [ApplicationSettings]
 ApplicationName = "konnekt-app-functions-service"
-# Default  MQTT Config 
+# Default  MQTT Config
 MqttAddress = "mosquitto"
 MqttPort = "1883"
 MqttProtocol = "tcp"
