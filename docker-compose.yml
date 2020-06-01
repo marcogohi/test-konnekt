@@ -6,7 +6,7 @@
 #  * modified: Feb, 2020
 #  *******************************************************************************/
 
-version: '3.4'
+version: "3.4"
 
 x-common-logs: &common-logs
   driver: "json-file"
@@ -16,10 +16,9 @@ x-common-logs: &common-logs
 
 x-common-env-variables: &common-variables
   EDGEX_SECURITY_SECRET_STORE: "false"
-  edgex_registry: consul://edgex-core-consul:8500
   Clients_CoreData_Host: edgex-core-data
   Clients_Logging_Host: edgex-support-logging
-  Logging_EnableRemote: "true"
+  Logging_EnableRemote: "false"
 
 volumes:
   db-data:
@@ -30,7 +29,7 @@ volumes:
 
 services:
   volume:
-    image: edgexfoundry/docker-edgex-volume:1.1.0
+    image: edgexfoundry/docker-edgex-volume-arm64:1.1.0
     container_name: edgex-files
     networks:
       - edgex-network
@@ -52,7 +51,7 @@ services:
     networks:
       edgex-network:
         aliases:
-            - edgex-core-consul
+          - edgex-core-consul
     volumes:
       - log-data:/edgex/logs
       - consul-config:/consul/config
@@ -63,13 +62,14 @@ services:
       <<: *common-logs
 
   config-seed:
-    image: edgexfoundry/docker-core-config-seed-go:1.1.0
+    image: edgexfoundry/docker-core-config-seed-go-arm64:1.1.0
     container_name: edgex-config-seed
+    command: ["--profile=docker", "--cmd=/edgex/cmd-redis"]
     hostname: edgex-core-config-seed
     networks:
       edgex-network:
         aliases:
-            - edgex-core-config-seed
+          - edgex-core-config-seed
     environment:
       <<: *common-variables
     volumes:
@@ -82,48 +82,21 @@ services:
     logging:
       <<: *common-logs
 
-  mongo:
-    image: edgexfoundry/docker-edgex-mongo:1.1.0
+  redis:
+    image: redis:5.0.5-alpine
     ports:
-      - "27017:27017"
-    container_name: edgex-mongo
-    hostname: edgex-mongo
+      - "6379:6379"
+    container_name: edgex-redis
+    hostname: edgex-redis
     networks:
       - edgex-network
-    environment:
-      <<: *common-variables
     volumes:
-      - db-data:/data/db
-      - log-data:/edgex/logs
-      - consul-config:/consul/config
-      - consul-data:/consul/data
+      - db-data:/data
     depends_on:
       - volume
-    logging:
-      <<: *common-logs
-
-  logging:
-    image: edgexfoundry/docker-support-logging-go:1.1.0
-    ports:
-      - "48061:48061"
-    container_name: edgex-support-logging
-    hostname: edgex-support-logging
-    networks:
-      - edgex-network
-    environment:
-      <<: *common-variables
-    volumes:
-      - log-data:/edgex/logs
-      - consul-config:/consul/config
-      - consul-data:/consul/data
-    depends_on:
-      - config-seed
-      - volume
-    logging:
-      <<: *common-logs
 
   metadata:
-    image: edgexfoundry/docker-core-metadata-go:1.1.0
+    image: edgexfoundry/docker-core-metadata-go-arm64:1.1.0
     ports:
       - "48081:48081"
     container_name: edgex-core-metadata
@@ -138,12 +111,12 @@ services:
       - consul-data:/consul/data
     depends_on:
       - logging
-      - mongo
+      - redis
     logging:
       <<: *common-logs
 
   data:
-    image: edgexfoundry/docker-core-data-go:1.1.0
+    image: edgexfoundry/docker-core-data-go-arm64:1.1.0
     ports:
       - "48080:48080"
       - "5563:5563"
@@ -159,15 +132,15 @@ services:
       - consul-data:/consul/data
     depends_on:
       - logging
-      - mongo
+      - redis
     logging:
       <<: *common-logs
 
-#################################################################
-# Device Services
-#################################################################
+  #################################################################
+  # Device Services
+  #################################################################
   device-random:
-    image: edgexfoundry/docker-device-random-go:1.1.1
+    image: edgexfoundry/docker-device-random-go-arm64:1.1.1
     ports:
       - "49988:49988"
     container_name: edgex-device-random
@@ -184,8 +157,8 @@ services:
       - data
 
   konnektbox-app-functions:
-    image: marcogohi/konnektbox-app-functions:latest   
-    environment: 
+    image: marcogohi/konnektbox-app-functions-arm:latest
+    environment:
       EDGEX_SECURITY_SECRET_STORE: "false"
     container_name: konnektbox-app-functions
     hostname: konnektbox-app-functions
@@ -197,13 +170,12 @@ services:
           - konnektbox-app-functions
     depends_on:
       - data
-    volumes: 
+    volumes:
       - ./conf/app-functions/configuration.toml:/res/configuration.toml
 
-
-#################################################################
-# MQTT Broker
-#################################################################
+  #################################################################
+  # MQTT Broker
+  #################################################################
   mosquitto:
     image: eclipse-mosquitto
     hostname: mosquitto
@@ -216,7 +188,6 @@ services:
       edgex-network:
         aliases:
           - mosquitto
-
 
 networks:
   edgex-network:
