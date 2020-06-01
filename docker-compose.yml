@@ -155,7 +155,7 @@ services:
       - data
 
   konnektbox-app-functions:
-    image: marcogohi/konnektbox-app-functions-arm:latest
+    image: marcogohi/konnektbox-app-functions:latest
     environment:
       EDGEX_SECURITY_SECRET_STORE: "false"
     container_name: konnektbox-app-functions
